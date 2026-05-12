@@ -5,7 +5,7 @@ from dps310 import DPS310
 from rpr0521rs import RPR0521RS
 from bh1750 import BH1750
 
-i2c = I2C(0, sda=Pin(21), scl=Pin(22), freq=100000)
+i2c = I2C(0, sda=Pin(1), scl=Pin(0), freq=100000)
 print("I2C scan:", [hex(x) for x in i2c.scan()])
 
 scd41 = SCD41(i2c)
