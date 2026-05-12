@@ -16,18 +16,29 @@ bh = BH1750(i2c)
 
 time.sleep(5)
 
+start = time.ticks_ms()
+
 while True:
+    elapsed_sec = time.ticks_diff(time.ticks_ms(), start) // 1000
+    print("Time: {} s".format(elapsed_sec))
+
     if scd41.data_ready():
         co2, scd_t, scd_h = scd41.read_measurement()
     else:
         co2, scd_t, scd_h = None, None, None
+
     dps_t, dps_p = dps310.read()
     rpr_lux = rpr.read_lux()
     bh_lux = bh.read_lux()
 
-    print("[SCD41]    CO2: {} ppm, 温度: {:.2f} C, 湿度: {:.2f} %RH".format(co2, scd_t, scd_h))
+    if co2 is not None:
+        print("[SCD41]    CO2: {} ppm, 温度: {:.2f} C, 湿度: {:.2f} %RH".format(co2, scd_t, scd_h))
+    else:
+        print("[SCD41]    CO2: None ppm, 温度: None C, 湿度: None %RH")
+
     print("[DPS310]   温度: {:.2f} C, 気圧: {:.2f} hPa".format(dps_t, dps_p / 100.0))
     print("[RPR-0521] 照度: {:.2f} lx".format(rpr_lux))
     print("[BH1750]   照度: {:.2f} lx".format(bh_lux))
     print()
+
     time.sleep(15)
