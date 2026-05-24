@@ -4,18 +4,22 @@ import time
 class SCD41:
     ADDR = 0x62
 
-    CMD_START_PERIODIC   = 0x21B1
-    CMD_READ_MEASUREMENT = 0xEC05
-    CMD_STOP_PERIODIC    = 0x3F86
-    CMD_GET_DATA_READY   = 0xE4B8
-    CMD_REINIT           = 0x3646
+    CMD_START_PERIODIC      = 0x21B1
+    CMD_STOP_PERIODIC       = 0x3F86
+    CMD_GET_DATA_READY      = 0xE4B8
+    CMD_READ_MEASUREMENT    = 0xEC05
+    CMD_REINIT              = 0x3646
+    CMD_MEASURE_SINGLE_SHOT = 0x219D
+    CMD_WAKE_UP             = 0x36F6
+    CMD_POWER_DOWN          = 0x36E0
 
     def __init__(self, i2c):
         self.i2c = i2c
-        self._send_cmd(self.CMD_STOP_PERIODIC)
+        try:
+            self._send_cmd(self.CMD_STOP_PERIODIC)
+        except Exception:
+            pass
         time.sleep_ms(500)
-        self._send_cmd(self.CMD_REINIT)
-        time.sleep_ms(30)
 
     @staticmethod
     def _crc8(data):
@@ -43,6 +47,18 @@ class SCD41:
     def data_ready(self):
         data = self._read(self.CMD_GET_DATA_READY, 3)
         return (((data[0] & 0x07) << 8) | data[1]) != 0
+
+    def measure_single_shot(self):
+        self._send_cmd(self.CMD_MEASURE_SINGLE_SHOT)
+
+    def wake_up(self):
+        """唤醒 SCD41。datasheet 第 19 页:max 30ms。
+        注意 datasheet 说 wake_up 命令不会被 ACK,所以要忽略 I2C 错误。"""
+        try:
+            self._send_cmd(self.CMD_WAKE_UP)
+        except Exception:
+            pass
+        time.sleep_ms(30)
 
     def read_measurement(self):
         data = self._read(self.CMD_READ_MEASUREMENT, 9)
